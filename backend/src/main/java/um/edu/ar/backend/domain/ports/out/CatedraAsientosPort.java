@@ -1,0 +1,29 @@
+package um.edu.ar.backend.domain.ports.out;
+
+import um.edu.ar.backend.domain.model.AsientoId;
+
+import java.util.List;
+
+public interface CatedraAsientosPort {
+
+    BloqueoResultado bloquearAsientos(
+            Long eventoId,
+            List<AsientoId> asientos,
+            String authorizationHeader
+    );
+
+    record BloqueoResultado(
+            boolean resultado,
+            String descripcion,
+            Long eventoId,
+            List<AsientoBloqueadoRespuesta> asientos
+    ) {
+        public record AsientoBloqueadoRespuesta(
+                int fila,
+                int columna,
+                String estado
+        ) {}
+    }
+}
+
+
