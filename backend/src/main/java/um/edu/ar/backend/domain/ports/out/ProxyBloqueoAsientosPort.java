@@ -4,12 +4,11 @@ import um.edu.ar.backend.domain.model.AsientoId;
 
 import java.util.List;
 
-public interface CatedraAsientosPort {
+public interface ProxyBloqueoAsientosPort {
 
     BloqueoResultado bloquearAsientos(
             Long eventoId,
-            List<AsientoId> asientos,
-            String authorizationHeader
+            List<AsientoId> asientos
     );
 
     record BloqueoResultado(

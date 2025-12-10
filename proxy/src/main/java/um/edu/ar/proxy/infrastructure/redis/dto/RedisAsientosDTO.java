@@ -5,12 +5,11 @@ import java.util.List;
 
 @Data
 public class RedisAsientosDTO {
-
     private Long eventoId;
-    private List<AsientoRedisDTO> asientos;
+    private List<ItemAsientoDTO> asientos;
 
     @Data
-    public static class AsientoRedisDTO {
+    public static class ItemAsientoDTO {
         private int fila;
         private int columna;
         private String estado;

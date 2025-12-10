@@ -2,11 +2,12 @@ package um.edu.ar.backend.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import um.edu.ar.backend.domain.model.AsientoId;
 import um.edu.ar.backend.domain.ports.in.BloquearAsientosUseCase;
 import um.edu.ar.backend.domain.ports.out.AsientoBloqueadoRepositoryPort;
-import um.edu.ar.backend.domain.ports.out.CatedraAsientosPort;
-import um.edu.ar.backend.domain.ports.out.SesionTokenService;
+import um.edu.ar.backend.domain.ports.out.ProxyBloqueoAsientosPort;
+import um.edu.ar.backend.domain.ports.out.SesionService;
 import um.edu.ar.backend.infrastructure.persistence.entity.AsientoBloqueado;
 
 import java.time.Instant;
@@ -17,17 +18,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BloquearAsientosService implements BloquearAsientosUseCase {
 
-    private final CatedraAsientosPort catedraAsientosPort;
+    private final ProxyBloqueoAsientosPort proxyBloqueoAsientosPort;
     private final AsientoBloqueadoRepositoryPort asientoRepo;
-    private final SesionTokenService sesionTokenService; // ⬅️ nuevo
+    private final SesionService sesionService;   // ⚠️ ahora usamos SesionService, no SesionTokenService
 
     private static final int MAX_ASIENTOS_POR_SESION = 4;
     private static final int BLOQUEO_MINUTOS = 5;
 
     @Override
+    @Transactional
     public BloquearAsientosResponse bloquear(BloquearAsientosCommand command) {
 
         asientoRepo.deleteExpired(Instant.now());
+
+        if (!sesionService.validarSesion(command.sessionId())) {
+            return new BloquearAsientosResponse(
+                    false,
+                    "Sesión no válida o expirada",
+                    command.eventoId(),
+                    List.of()
+            );
+        }
 
         var existentes = asientoRepo.findBySessionIdAndEventoId(
                 command.sessionId(), command.eventoId());
@@ -48,21 +59,8 @@ public class BloquearAsientosService implements BloquearAsientosUseCase {
                 .map(a -> new AsientoId(a.fila(), a.columna()))
                 .toList();
 
-
-        String token = sesionTokenService.obtenerToken(String.valueOf(command.sessionId()));
-        if (token == null || token.isBlank()) {
-            return new BloquearAsientosResponse(
-                    false,
-                    "Sesión no válida o sin token de autenticación",
-                    command.eventoId(),
-                    List.of()
-            );
-        }
-
-        String authorizationHeader = "Bearer " + token;
-
         var resultadoCatedra =
-                catedraAsientosPort.bloquearAsientos(command.eventoId(), asientosIds, authorizationHeader);
+                proxyBloqueoAsientosPort.bloquearAsientos(command.eventoId(), asientosIds);
 
         if (!resultadoCatedra.resultado()) {
             var asientosEstado = resultadoCatedra.asientos().stream()
@@ -81,7 +79,8 @@ public class BloquearAsientosService implements BloquearAsientosUseCase {
         Instant expiracion = Instant.now().plus(BLOQUEO_MINUTOS, ChronoUnit.MINUTES);
 
         for (var asiento : resultadoCatedra.asientos()) {
-            if ("Bloqueo exitoso".equalsIgnoreCase(asiento.estado())) {
+            String estado = asiento.estado();
+            if ("BLOQUEADO".equalsIgnoreCase(estado)) {
                 var bloqueado = new AsientoBloqueado();
                 bloqueado.setSessionId(command.sessionId());
                 bloqueado.setEventoId(resultadoCatedra.eventoId());
@@ -105,6 +104,7 @@ public class BloquearAsientosService implements BloquearAsientosUseCase {
         );
     }
 }
+
 
 
 

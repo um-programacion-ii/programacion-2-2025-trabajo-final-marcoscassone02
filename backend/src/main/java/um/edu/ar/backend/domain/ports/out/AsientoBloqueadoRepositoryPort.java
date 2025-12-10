@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface AsientoBloqueadoRepositoryPort {
 
-    // 🔁 CAMBIO: Long -> String
     List<AsientoBloqueado> findBySessionIdAndEventoId(String sessionId, Long eventoId);
 
     AsientoBloqueado save(AsientoBloqueado asiento);
@@ -15,4 +14,7 @@ public interface AsientoBloqueadoRepositoryPort {
     void deleteBySessionId(String sessionId);
 
     void deleteExpired(Instant ahora);
+
+    void deleteBySessionIdAndEventoId(String sessionId, Long eventoId);
+
 }

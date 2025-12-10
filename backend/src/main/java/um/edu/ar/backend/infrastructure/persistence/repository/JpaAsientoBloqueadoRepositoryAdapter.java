@@ -33,6 +33,11 @@ public class JpaAsientoBloqueadoRepositoryAdapter implements AsientoBloqueadoRep
     public void deleteExpired(Instant ahora) {
         jpaRepository.deleteByExpiracionBefore(ahora);
     }
+
+    @Override
+    public void deleteBySessionIdAndEventoId(String sessionId, Long eventoId) {
+        jpaRepository.deleteBySessionIdAndEventoId(sessionId, eventoId);
+    }
 }
 
 

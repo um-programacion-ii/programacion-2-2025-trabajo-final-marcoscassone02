@@ -13,4 +13,6 @@ public interface JpaAsientoBloqueadoRepository extends JpaRepository<AsientoBloq
     void deleteBySessionId(String sessionId);
 
     void deleteByExpiracionBefore(Instant expiracion);
+
+    void deleteBySessionIdAndEventoId(String sessionId, Long eventoId);
 }
