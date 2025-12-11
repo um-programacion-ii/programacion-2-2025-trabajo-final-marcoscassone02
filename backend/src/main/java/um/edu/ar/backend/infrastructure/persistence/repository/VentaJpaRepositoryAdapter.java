@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import um.edu.ar.backend.domain.model.Venta;
 import um.edu.ar.backend.domain.ports.out.VentaRepositoryPort;
+import um.edu.ar.backend.infrastructure.persistence.entity.VentaEntity;
 import um.edu.ar.backend.infrastructure.persistence.mapper.VentaPersistenceMapper;
 
 import java.util.List;
@@ -23,11 +24,6 @@ public class VentaJpaRepositoryAdapter implements VentaRepositoryPort {
     }
 
     @Override
-    public Optional<Venta> findById(Long id) {
-        return Optional.empty();
-    }
-
-    @Override
     public List<Venta> findAll() {
         return jpaRepository.findAll()
                 .stream()
@@ -36,7 +32,10 @@ public class VentaJpaRepositoryAdapter implements VentaRepositoryPort {
     }
 
     @Override
-    public List<Venta> findByResultado(boolean resultado) {
-        return List.of();
+    public Optional<Venta> findByVentaIdCatedra(Long ventaIdCatedra) {
+        return jpaRepository.findByVentaIdCatedra(ventaIdCatedra)
+                .map(mapper::toDomain);
     }
+
+
 }

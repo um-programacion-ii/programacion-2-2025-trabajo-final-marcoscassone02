@@ -19,7 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CatedraAsientosAdapter implements CatedraAsientosPort {
 
-    private final WebClient catedraWebClient; // ya viene con Authorization configurado
+    private final WebClient catedraWebClient;
 
     @Override
     public BloqueoResultado bloquearAsientos(BloquearAsientosCommand command) {
@@ -35,7 +35,7 @@ public class CatedraAsientosAdapter implements CatedraAsientosPort {
 
         var response = catedraWebClient.post()
                 .uri("/api/endpoints/v1/bloquear-asientos")
-                .bodyValue(requestBody)  // ya NO seteamos header Authorization acá
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(BloqueoCatedraDTO.class)
                 .doOnNext(r -> log.info("[Cátedra][RESP RAW] {}", r))

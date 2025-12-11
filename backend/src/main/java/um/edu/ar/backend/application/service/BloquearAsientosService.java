@@ -20,7 +20,7 @@ public class BloquearAsientosService implements BloquearAsientosUseCase {
 
     private final ProxyBloqueoAsientosPort proxyBloqueoAsientosPort;
     private final AsientoBloqueadoRepositoryPort asientoRepo;
-    private final SesionService sesionService;   // ⚠️ ahora usamos SesionService, no SesionTokenService
+    private final SesionService sesionService;
 
     private static final int MAX_ASIENTOS_POR_SESION = 4;
     private static final int BLOQUEO_MINUTOS = 5;

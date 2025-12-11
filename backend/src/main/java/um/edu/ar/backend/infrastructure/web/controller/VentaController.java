@@ -3,7 +3,9 @@ package um.edu.ar.backend.infrastructure.web.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import um.edu.ar.backend.domain.model.SessionState;
 import um.edu.ar.backend.domain.ports.in.RealizarVentaUseCase;
+import um.edu.ar.backend.domain.ports.out.SesionService;
 import um.edu.ar.backend.infrastructure.web.dto.RealizarVentaRequest;
 
 @RestController
@@ -12,6 +14,7 @@ import um.edu.ar.backend.infrastructure.web.dto.RealizarVentaRequest;
 public class VentaController {
 
     private final RealizarVentaUseCase realizarVentaUseCase;
+    private final SesionService sesionService;
 
     @PostMapping("/{eventoId}/realizar-venta")
     public ResponseEntity<?> realizarVenta(
@@ -21,6 +24,15 @@ public class VentaController {
     ) {
         var command = request.toCommand(sessionId, eventoId);
         var result = realizarVentaUseCase.realizarVenta(command);
+
+        if (result.resultado()) {
+            var state = sesionService.obtenerSesion(sessionId);
+            if (state != null) {
+                state.setPasoActual(SessionState.Step.VENTA_COMPLETADA);
+                sesionService.guardarSesion(state);
+            }
+        }
+
         return ResponseEntity.ok(result);
     }
 }

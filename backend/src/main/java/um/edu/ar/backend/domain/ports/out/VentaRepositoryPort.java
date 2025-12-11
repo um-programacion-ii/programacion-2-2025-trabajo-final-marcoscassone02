@@ -9,9 +9,7 @@ public interface VentaRepositoryPort {
 
     Venta save(Venta venta);
 
-    Optional<Venta> findById(Long id);
-
     List<Venta> findAll();
 
-    List<Venta> findByResultado(boolean resultado);
+    Optional<Venta> findByVentaIdCatedra(Long ventaIdCatedra);
 }

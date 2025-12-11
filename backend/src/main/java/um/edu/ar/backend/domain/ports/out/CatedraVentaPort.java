@@ -2,9 +2,9 @@ package um.edu.ar.backend.domain.ports.out;
 
 import java.util.List;
 
-public interface ProxyVentaPort {
+public interface CatedraVentaPort {
 
-    ProxyVentaResultado realizarVenta(
+    VentaResultado realizarVenta(
             Long eventoId,
             double precioVenta,
             List<AsientoVentaRequest> asientos
@@ -12,7 +12,7 @@ public interface ProxyVentaPort {
 
     record AsientoVentaRequest(int fila, int columna, String persona) {}
 
-    record ProxyVentaResultado(
+    record VentaResultado(
             boolean resultado,
             String descripcion,
             Long eventoId,

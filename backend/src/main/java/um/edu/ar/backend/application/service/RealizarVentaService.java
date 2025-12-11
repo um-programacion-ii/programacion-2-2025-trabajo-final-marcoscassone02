@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import um.edu.ar.backend.domain.model.Venta;
 import um.edu.ar.backend.domain.ports.in.RealizarVentaUseCase;
 import um.edu.ar.backend.domain.ports.out.AsientoBloqueadoRepositoryPort;
-import um.edu.ar.backend.domain.ports.out.ProxyVentaPort;
+import um.edu.ar.backend.domain.ports.out.CatedraVentaPort;
 import um.edu.ar.backend.domain.ports.out.SesionService;
 import um.edu.ar.backend.domain.ports.out.VentaRepositoryPort;
 
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class RealizarVentaService implements RealizarVentaUseCase {
 
     private final SesionService sesionService;
-    private final ProxyVentaPort proxyVentaPort;
+    private final CatedraVentaPort proxyVentaPort;
     private final AsientoBloqueadoRepositoryPort asientoBloqueadoRepository;
     private final VentaRepositoryPort ventaRepository;
 
@@ -77,23 +77,23 @@ public class RealizarVentaService implements RealizarVentaUseCase {
         }
 
         var asientosReq = asientosSolicitados.stream()
-                .map(a -> new ProxyVentaPort.AsientoVentaRequest(
+                .map(a -> new CatedraVentaPort.AsientoVentaRequest(
                         a.fila(), a.columna(), a.persona()
                 ))
                 .toList();
 
-        var resultadoProxy = proxyVentaPort.realizarVenta(
+        var resultado = proxyVentaPort.realizarVenta(
                 command.eventoId(),
                 command.precioVenta(),
                 asientosReq
         );
 
-        if (!resultadoProxy.resultado()) {
+        if (!resultado.resultado()) {
 
-            Venta ventaFallida = VentaFactory.fromProxyFallido(command, resultadoProxy);
+            Venta ventaFallida = VentaFactory.fromFallido(command, resultado);
             ventaRepository.save(ventaFallida);
 
-            var asientosRespError = resultadoProxy.asientos().stream()
+            var asientosRespError = resultado.asientos().stream()
                     .map(a -> new RealizarVentaResponse.AsientoEstado(
                             a.fila(), a.columna(), a.persona(), a.estado()
                     ))
@@ -101,20 +101,20 @@ public class RealizarVentaService implements RealizarVentaUseCase {
 
             return new RealizarVentaResponse(
                     false,
-                    resultadoProxy.descripcion(),
-                    resultadoProxy.eventoId(),
-                    resultadoProxy.ventaId(),
-                    resultadoProxy.precioVenta(),
+                    resultado.descripcion(),
+                    resultado.eventoId(),
+                    resultado.ventaId(),
+                    resultado.precioVenta(),
                     asientosRespError
             );
         }
 
         asientoBloqueadoRepository.deleteBySessionId(command.sessionId());
 
-        Venta ventaExitosa = VentaFactory.fromProxyExitoso(command, resultadoProxy);
+        Venta ventaExitosa = VentaFactory.fromExitoso(command, resultado);
         ventaRepository.save(ventaExitosa);
 
-        var asientosResp = resultadoProxy.asientos().stream()
+        var asientosResp = resultado.asientos().stream()
                 .map(a -> new RealizarVentaResponse.AsientoEstado(
                         a.fila(), a.columna(), a.persona(), a.estado()
                 ))
@@ -122,10 +122,10 @@ public class RealizarVentaService implements RealizarVentaUseCase {
 
         return new RealizarVentaResponse(
                 true,
-                resultadoProxy.descripcion(),
-                resultadoProxy.eventoId(),
-                resultadoProxy.ventaId(),
-                resultadoProxy.precioVenta(),
+                resultado.descripcion(),
+                resultado.eventoId(),
+                resultado.ventaId(),
+                resultado.precioVenta(),
                 asientosResp
         );
     }

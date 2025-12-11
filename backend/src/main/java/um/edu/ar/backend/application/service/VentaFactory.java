@@ -3,7 +3,7 @@ package um.edu.ar.backend.application.service;
 import um.edu.ar.backend.domain.model.Venta;
 import um.edu.ar.backend.domain.model.VentaAsiento;
 import um.edu.ar.backend.domain.ports.in.RealizarVentaUseCase;
-import um.edu.ar.backend.domain.ports.out.ProxyVentaPort;
+import um.edu.ar.backend.domain.ports.out.CatedraVentaPort;
 
 import java.time.Instant;
 import java.util.List;
@@ -39,10 +39,10 @@ public class VentaFactory {
         return venta;
     }
 
-    // Proxy rechazó la venta
-    public static Venta fromProxyFallido(
+
+    public static Venta fromFallido(
             RealizarVentaUseCase.RealizarVentaCommand command,
-            ProxyVentaPort.ProxyVentaResultado resultado
+            CatedraVentaPort.VentaResultado resultado
     ) {
         Venta venta = new Venta();
         venta.setEventoId(command.eventoId());
@@ -68,10 +68,10 @@ public class VentaFactory {
         return venta;
     }
 
-    // ✅ Venta exitosa
-    public static Venta fromProxyExitoso(
+
+    public static Venta fromExitoso(
             RealizarVentaUseCase.RealizarVentaCommand command,
-            ProxyVentaPort.ProxyVentaResultado resultado
+            CatedraVentaPort.VentaResultado resultado
     ) {
         Venta venta = new Venta();
         venta.setEventoId(command.eventoId());
