@@ -9,7 +9,6 @@ public interface RealizarVentaUseCase {
     record RealizarVentaCommand(
             String sessionId,
             Long eventoId,
-            double precioVenta,
             List<AsientoVenta> asientos
     ) {
         public record AsientoVenta(int fila, int columna, String persona) {}
@@ -26,3 +25,4 @@ public interface RealizarVentaUseCase {
         public record AsientoEstado(int fila, int columna, String persona, String estado) {}
     }
 }
+

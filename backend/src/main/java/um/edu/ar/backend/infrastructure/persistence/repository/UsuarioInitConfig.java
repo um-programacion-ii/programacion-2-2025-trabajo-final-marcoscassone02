@@ -19,7 +19,6 @@ public class UsuarioInitConfig {
                 u.setUsername("marcos");
                 u.setPassword("marcos");
                 repo.save(u);
-                System.out.println(">>> Usuario 'marcos' creado en usuarios_app (password en texto plano)");
             }
 
             System.out.println(">>> Usuarios en BD:");

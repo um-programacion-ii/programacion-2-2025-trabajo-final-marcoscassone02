@@ -22,6 +22,10 @@ public class VentaController {
             @PathVariable Long eventoId,
             @RequestBody RealizarVentaRequest request
     ) {
+        if (!sesionService.validarSesion(sessionId)) {
+            return ResponseEntity.status(401).build();
+        }
+
         var command = request.toCommand(sessionId, eventoId);
         var result = realizarVentaUseCase.realizarVenta(command);
 
@@ -36,3 +40,4 @@ public class VentaController {
         return ResponseEntity.ok(result);
     }
 }
+

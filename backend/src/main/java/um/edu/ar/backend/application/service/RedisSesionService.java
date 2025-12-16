@@ -7,6 +7,8 @@ import um.edu.ar.backend.domain.model.SessionState;
 import um.edu.ar.backend.domain.ports.out.SesionService;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,34 +22,57 @@ public class RedisSesionService implements SesionService {
         return "session:" + sessionId;
     }
 
-    @Override
-    public String crearSesion() {
+    private String userKey(String username) {
+        return "user_session:" + username;
+    }
 
-        String sessionId = java.util.UUID.randomUUID().toString();
+    @Override
+    public String iniciarORecuperarSesion(String username) {
+
+        String existingSessionId =
+                (String) redisTemplate.opsForValue().get(userKey(username));
+
+        if (existingSessionId != null) {
+            SessionState state =
+                    (SessionState) redisTemplate.opsForValue().get(key(existingSessionId));
+
+            if (state != null) {
+                state.setLastActivity(Instant.now());
+
+                redisTemplate.opsForValue().set(key(existingSessionId), state, TTL);
+                redisTemplate.expire(userKey(username), TTL);
+
+                return existingSessionId;
+            } else {
+                // índice colgando
+                redisTemplate.delete(userKey(username));
+            }
+        }
+
+        // crear nueva sesión
+        String sessionId = UUID.randomUUID().toString();
 
         SessionState state = new SessionState();
         state.setSessionId(sessionId);
+        state.setUsername(username);
         state.setPasoActual(SessionState.Step.LISTA_EVENTOS);
-        state.setLastActivity(java.time.Instant.now());
+        state.setLastActivity(Instant.now());
 
-        redisTemplate.opsForValue().set(
-                key(sessionId),
-                state,
-                TTL
-        );
+        redisTemplate.opsForValue().set(key(sessionId), state, TTL);
+        redisTemplate.opsForValue().set(userKey(username), sessionId, TTL);
 
         return sessionId;
     }
 
     @Override
     public boolean validarSesion(String sessionId) {
-        String key = key(sessionId);
-        SessionState state = (SessionState) redisTemplate.opsForValue().get(key);
-        if (state == null) {
-            return false;
-        }
+        String k = key(sessionId);
+        SessionState state = (SessionState) redisTemplate.opsForValue().get(k);
 
-        redisTemplate.expire(key, TTL);
+        if (state == null) return false;
+
+        redisTemplate.expire(k, TTL);
+        redisTemplate.expire(userKey(state.getUsername()), TTL);
         return true;
     }
 
@@ -58,16 +83,31 @@ public class RedisSesionService implements SesionService {
 
     @Override
     public void guardarSesion(SessionState sessionState) {
-        sessionState.setLastActivity(java.time.Instant.now());
+        sessionState.setLastActivity(Instant.now());
+
         redisTemplate.opsForValue().set(
                 key(sessionState.getSessionId()),
                 sessionState,
+                TTL
+        );
+
+        redisTemplate.opsForValue().set(
+                userKey(sessionState.getUsername()),
+                sessionState.getSessionId(),
                 TTL
         );
     }
 
     @Override
     public void invalidarSesion(String sessionId) {
+
+        SessionState state =
+                (SessionState) redisTemplate.opsForValue().get(key(sessionId));
+
+        if (state != null && state.getUsername() != null) {
+            redisTemplate.delete(userKey(state.getUsername()));
+        }
+
         redisTemplate.delete(key(sessionId));
     }
 }

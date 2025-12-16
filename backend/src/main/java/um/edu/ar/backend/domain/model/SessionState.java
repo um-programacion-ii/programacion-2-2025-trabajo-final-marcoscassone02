@@ -17,7 +17,10 @@ public class SessionState implements Serializable {
     private String username;
     private Instant lastActivity;
     private Step pasoActual;
+
     private Long eventoId;
+    private Long ventaId;
+
     private List<AsientoSeleccionado> asientos;
 
     @Data
@@ -34,6 +37,7 @@ public class SessionState implements Serializable {
         DETALLE_EVENTO,
         SELECCION_ASIENTOS,
         CARGA_NOMBRES,
+        VENTA_DETALLES,
         VENTA_COMPLETADA
     }
 }

@@ -12,6 +12,7 @@ import um.edu.ar.backend.infrastructure.persistence.repository.UsuarioAppReposit
 import um.edu.ar.backend.infrastructure.web.dto.LoginRequest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -32,33 +33,21 @@ public class SesionController {
         UsuarioApp usuario = usuarioRepo.findByUsername(request.username())
                 .orElse(null);
 
-        if (usuario == null) {
+        if (usuario == null ||
+                !passwordEncoder.matches(request.password(), usuario.getPassword())) {
+
             r.put("resultado", false);
-            r.put("descripcion", "Usuario no encontrado");
+            r.put("descripcion", "Credenciales inválidas");
             return ResponseEntity.status(401).body(r);
         }
 
-        boolean ok = passwordEncoder.matches(request.password(), usuario.getPassword());
-
-        if (!ok) {
-            r.put("resultado", false);
-            r.put("descripcion", "Contraseña incorrecta");
-            return ResponseEntity.status(401).body(r);
-        }
-
-        String sessionId = sesionService.crearSesion();
-
-        SessionState state = sesionService.obtenerSesion(sessionId);
-        if (state != null) {
-            state.setUsername(usuario.getUsername());
-            sesionService.guardarSesion(state);
-        }
+        String sessionId = sesionService.iniciarORecuperarSesion(usuario.getUsername());
 
         r.put("resultado", true);
         r.put("descripcion", "Sesión iniciada correctamente");
         r.put("sessionId", sessionId);
 
-        log.info("[LOGIN] Sesión creada: username={}, sessionId={}", usuario.getUsername(), sessionId);
+        log.info("[LOGIN] username={} sessionId={}", usuario.getUsername(), sessionId);
 
         return ResponseEntity.ok(r);
     }
@@ -78,17 +67,46 @@ public class SesionController {
             String sessionId,
             String username,
             String pasoActual,
-            Long eventoId
+            Long eventoId,
+            Long ventaId,
+            List<AsientoSeleccionadoResponse> asientos
     ) {
         public static SessionStateResponse from(SessionState state) {
+
+            var asientos = state.getAsientos() == null
+                    ? List.<AsientoSeleccionadoResponse>of()
+                    : state.getAsientos().stream()
+                    .map(a -> new AsientoSeleccionadoResponse(a.getFila(), a.getColumna(), a.getPersona()))
+                    .toList();
+
             return new SessionStateResponse(
                     state.getSessionId(),
                     state.getUsername(),
                     state.getPasoActual() != null ? state.getPasoActual().name() : null,
-                    state.getEventoId()
+                    state.getEventoId(),
+                    state.getVentaId(),
+                    asientos
             );
         }
     }
+
+    public record AsientoSeleccionadoResponse(
+            int fila,
+            int columna,
+            String persona
+    ) {}
+
+    @PostMapping("/cerrar")
+    public ResponseEntity<Void> cerrar(
+            @RequestHeader("X-Session-Id") String sessionId
+    ) {
+        sesionService.invalidarSesion(sessionId);
+        log.info("[LOGOUT] sessionId={} invalidada", sessionId);
+        return ResponseEntity.ok().build();
+    }
+
 }
+
+
 
 

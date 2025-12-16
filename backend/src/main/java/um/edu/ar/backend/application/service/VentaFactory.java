@@ -13,7 +13,8 @@ public class VentaFactory {
     // Bloqueo inválido
     public static Venta fromBloqueoFallido(
             RealizarVentaUseCase.RealizarVentaCommand command,
-            List<RealizarVentaUseCase.RealizarVentaCommand.AsientoVenta> asientosNoBloqueados
+            List<RealizarVentaUseCase.RealizarVentaCommand.AsientoVenta> asientosNoBloqueados,
+            double precioTotal
     ) {
         Venta venta = new Venta();
         venta.setEventoId(command.eventoId());
@@ -21,7 +22,7 @@ public class VentaFactory {
         venta.setFechaVenta(Instant.now());
         venta.setResultado(false);
         venta.setDescripcion("Bloqueo inválido o expirado");
-        venta.setPrecioVenta(command.precioVenta());
+        venta.setPrecioVenta(precioTotal);
 
         venta.setAsientos(
                 asientosNoBloqueados.stream()
@@ -42,7 +43,8 @@ public class VentaFactory {
 
     public static Venta fromFallido(
             RealizarVentaUseCase.RealizarVentaCommand command,
-            CatedraVentaPort.VentaResultado resultado
+            CatedraVentaPort.VentaResultado resultado,
+            double precioTotal
     ) {
         Venta venta = new Venta();
         venta.setEventoId(command.eventoId());
@@ -50,7 +52,7 @@ public class VentaFactory {
         venta.setFechaVenta(Instant.now());
         venta.setResultado(false);
         venta.setDescripcion(resultado.descripcion());
-        venta.setPrecioVenta(resultado.precioVenta());
+        venta.setPrecioVenta(precioTotal);
 
         venta.setAsientos(
                 resultado.asientos().stream()
@@ -71,7 +73,8 @@ public class VentaFactory {
 
     public static Venta fromExitoso(
             RealizarVentaUseCase.RealizarVentaCommand command,
-            CatedraVentaPort.VentaResultado resultado
+            CatedraVentaPort.VentaResultado resultado,
+            double precioTotal
     ) {
         Venta venta = new Venta();
         venta.setEventoId(command.eventoId());
@@ -80,6 +83,7 @@ public class VentaFactory {
         venta.setResultado(true);
         venta.setDescripcion(resultado.descripcion());
         venta.setPrecioVenta(resultado.precioVenta());
+        venta.setPrecioVenta(precioTotal);
 
         venta.setAsientos(
                 resultado.asientos().stream()
