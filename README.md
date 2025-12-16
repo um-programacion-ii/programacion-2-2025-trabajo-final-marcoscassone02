@@ -33,22 +33,26 @@ Alumno: Marcos Cassone - 62336
 
 ---
 
+**Descargar Docker(linux)**
+
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin
+sudo systemctl enable docker
+sudo systemctl start docker
+
 **Como levantar la App**
 
 1 - Levantar Redis local
-
 Desde la raíz del proyecto:
 
 docker compose up -d
 
 2 - Levantar Backend
-
 Desde la carpeta del backend
 
 mvn spring-boot:run
 
 3 - Levantar Proxy
-
 Desde la carpeta del Porxy
 
 mvn spring-boot:run
