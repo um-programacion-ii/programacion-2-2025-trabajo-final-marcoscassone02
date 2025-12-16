@@ -71,3 +71,9 @@ body:
 
 Copiar la devolucion del id-token en el app.properties del backend y del proxy 
 en la variable catedra.auth-token
+
+**Crear Usuario Local**
+
+curl -X POST http://localhost:8080/debug/usuarios \
+  -H "Content-Type: application/json" \
+  -d '{"username":"","password":""}'
